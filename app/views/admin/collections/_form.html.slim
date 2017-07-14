@@ -1,0 +1,6 @@
+= semantic_form_for('', url: admin_collections_path, method: :post) do |f|
+  = f.inputs name: 'General' do
+    = f.input :name
+    = f.input :description, as: :text
+    = f.input :image, as: :file
+  = submit_tag('Submit')

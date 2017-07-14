@@ -1,0 +1,6 @@
+some_sample_job:
+  cron: "0 */8 * * *"
+  class: SomeClassForRunner
+  queue: high
+  args:
+    - "ARGS TO SEND"

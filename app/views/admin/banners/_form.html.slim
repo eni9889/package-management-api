@@ -1,0 +1,6 @@
+= semantic_form_for('', url: admin_banners_path, method: :post) do |f|
+  = f.inputs name: 'General' do
+    = f.input :package_id, required: :false
+    = f.input :collection_id, required: :false
+    = f.input :image, as: :file
+  = submit_tag('Submit')

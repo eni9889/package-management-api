@@ -1,0 +1,77 @@
+<% stage = fetch(:stage) %>
+<% domain = fetch(:domain) %>
+
+upstream <%= "unicorn_#{stage}" %> {
+  server unix:<%= "#{shared_path}/sockets/unicorn.sock fail_timeout=0;" %>
+}
+
+## our http server at port 80
+server {
+  listen      80;
+  server_name default_server;
+  ## redirect http to https ##
+  # rewrite        ^ https://$server_name$request_uri? permanent;
+
+  index index.html index.htm;
+
+  underscores_in_headers on;
+
+  charset utf-8;
+
+  rewrite  ^\/status(.*)$  $1 last;
+
+  gzip  on;
+  gzip_disable     "MSIE [1-6]\.(?!.*SV1)";
+  gzip_types       text/plain application/xml text/xml text/css application/x-javascript application/xml+rss text/javascript application/json;
+
+  gzip_vary on;
+
+  access_log  <%= "#{shared_path}/log/#{domain}_nginx_access.log" %>;
+  error_log   <%= "#{shared_path}/log/#{domain}_nginx_error.log" %>;
+  root        <%= "#{current_path}/public" %>;
+
+  location ~* ^/assets/ {
+      access_log off;
+      # Per RFC2616 - 1 year maximum expiry
+      # http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html
+      expires 1y;
+      add_header Cache-Control public;
+
+      # Some browsers still send conditional-GET requests if there's a
+      # Last-Modified header or an ETag header even if they haven't
+      # reached the expiry date sent in the Expires header.
+      gzip_static on; # to serve pre-gzipped version
+      add_header Last-Modified "";
+      add_header ETag "";
+      break;
+  }
+
+  location /health_check {
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header Host $http_host;
+    proxy_redirect off;
+    proxy_next_upstream error;
+    proxy_pass <%= "http://unicorn_#{stage}" %>;
+    break;
+  }
+
+  location / {
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header Host $http_host;
+    proxy_redirect off;
+    proxy_next_upstream error;
+
+    #if ($http_x_forwarded_proto != "https") {
+    #  rewrite ^(.*)$ https://$host$1 permanent;
+    #}
+
+    proxy_pass <%= "http://unicorn_#{stage}" %>;
+
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains;";
+  }
+
+  error_page    404              /404.html;
+  error_page    500 502 503 504  /500.html;
+}

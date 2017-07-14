@@ -1,0 +1,19 @@
+production: &production
+  adapter: postgresql
+  encoding: unicode
+  database: package_manager_prod
+  pool: 10
+  username: prod_database_username
+  password: password
+
+development:
+  <<: *production
+  username: dev_database_username
+  database: package_manager_dev
+
+test:
+  adapter: postgresql
+  encoding: unicode
+  database: package_manager_test<%= ENV['TEST_ENV_NUMBER'] %>
+  username: test_database_username
+  password: password

@@ -1,0 +1,5 @@
+development: &development
+  access_key_id: some_access_id
+  secret_access_key: some_access_key
+test:
+  <<: *development
