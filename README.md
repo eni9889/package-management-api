@@ -1,9 +1,3 @@
-== package-management-api
-
-* Ruby version: 2.3.0
-
-* System dependencies: Rails-api, Grape, Postgresql
-
 ***How To Run Locally:***
 
 - Clone this repo: `git clone git@github.com:eni9889/package-management-api.git`
